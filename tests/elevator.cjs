@@ -1,0 +1,23 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');let count=0;const html=fs.readFileSync('elevator/index.html','utf8');const elements={};const make=id=>elements[id]??={textContent:'',innerHTML:'',disabled:false,attrs:{},classList:{toggle(){},add(){},remove(){}},setAttribute(k,v){this.attrs[k]=v},querySelector(){return make(id+'span')}};const buttons=[0,1,2,3,4].map(n=>Object.assign(make('floor'+n),{dataset:{floor:String(n)}}));let pending=[],seq=0;const c=vm.createContext({document:{getElementById:make,documentElement:{},body:make('body'),querySelectorAll:()=>buttons},matchMedia:()=>({matches:false}),setTimeout:fn=>{let id=++seq;pending.push({id,fn});return id},clearTimeout:id=>{pending=pending.filter(x=>x.id!==id)},console});vm.runInContext(html.match(/<script>([\s\S]*?)<\/script>/)[1],c);const run=x=>vm.runInContext(x,c);const flush=()=>{while(pending.length)pending.shift().fn()};const go=f=>{run(`travel(${f})`);flush()};function test(n,f){f();count++;console.log('PASS',n)}
+test('starts in lobby with empty pocket',()=>{assert.equal(run('s.floor'),0);assert.equal(run('s.item'),'none');assert.equal(run('s.found.size'),0)});
+test('locked infinity cannot be reached',()=>{assert.equal(run('travel(4)'),false);assert.equal(run('s.floor'),0)});
+test('reject invalid floors',()=>{for(const x of ['-1','5','NaN','1.5','"1"'])assert.equal(run('travel('+x+')'),false)});
+test('wrong order provides helpful feedback',()=>{go(2);run('act()');assert.equal(run('s.item'),'none');assert(elements.status.textContent.includes('ชั้น 1'))});
+test('travel cannot queue multiple destinations',()=>{run('travel(1)');assert.equal(run('travel(3)'),false);flush();assert.equal(run('s.floor'),1)});
+test('borrow bubble once',()=>{run('act()');assert.equal(run('s.item'),'bubble');run('act()');assert.equal(run('s.found.size'),2)});
+test('wrong destination keeps bubble',()=>{go(3);run('act()');assert.equal(run('s.item'),'bubble');assert(elements.status.textContent.includes('ชั้น 2'))});
+test('bubble transforms to flower',()=>{go(2);run('act()');assert.equal(run('s.item'),'flower');assert(run('s.grown'))});
+test('cannot replace flower by collecting bubble again',()=>{go(1);run('act()');assert.equal(run('s.item'),'flower')});
+test('flower washes moon',()=>{go(3);run('act()');assert.equal(run('s.item'),'moon')});
+test('moon opens impossible destination',()=>{go(0);run('act()');assert(run('s.unlocked'));assert.equal(run('s.item'),'none');assert.equal(buttons[4].disabled,false)});
+test('inside has nested elevator visual',()=>{go(4);assert.equal(run('s.floor'),4);assert(elements.world.innerHTML.includes('scale('))});
+test('final star and all eight stamps',()=>{run('act()');assert.equal(run('s.item'),'star');assert.equal(run('s.found.size'),8);assert(run('s.complete'))});
+test('repeated ending is idempotent',()=>{run('act();act()');assert.equal(run('s.found.size'),8)});
+test('switch language preserves discoveries',()=>{run("$('language').onclick()");assert.equal(run('lang'),'en');assert.equal(elements.title.textContent,'Elevator to Elsewhere');assert.equal(run('s.found.size'),8)});
+test('calm mode persists through reset',()=>{run("$('motion').onclick();reset()");assert(run('calm'));assert.equal(run('lang'),'en');assert.equal(run('s.found.size'),0)});
+test('reset invalidates pending transitions',()=>{run('travel(1);reset()');flush();assert.equal(run('s.floor'),0);assert.equal(run('s.busy'),false);assert.equal(run('s.found.size'),0)});
+test('same floor stays stable',()=>assert.equal(run('travel(0)'),false));
+test('native keyboard-friendly buttons and status region',()=>{assert(html.includes('role="status" aria-atomic="true"'));assert(!html.includes('tabindex="-1"'));assert(html.includes('focus-visible'))});
+test('no remote requests, tracking or persistence',()=>assert(!/https?:|fetch\(|XMLHttpRequest|localStorage|sendBeacon/.test(html)));
+test('all existing route files remain',()=>{for(const x of ['index.html','shadow/index.html','sa-cafe/index.html','requirements/index.html'])assert(fs.existsSync(x))});
+console.log(`${count}/${count} deterministic checks passed`);
