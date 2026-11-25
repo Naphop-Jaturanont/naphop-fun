@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="A tiny listening experiment about strings, length and pitch."><title>Half a String | naphop.fun</title>
+<style>
+:root{color-scheme:dark;--base:#141f1d;--surface:#202e2a;--paper:#faf0d7;--muted:#ced0b6;--lime:#d4ee8f;--coral:#ffae82;--line:#586961}
+*{box-sizing:border-box}body{margin:0;background:var(--base);color:var(--paper);font:16px/1.55 system-ui,Tahoma,sans-serif}button,a{font:inherit;color:inherit}button{cursor:pointer}.shell{width:min(100% - 32px,960px);margin:auto}header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:16px;border-bottom:1px solid var(--line)}.toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}a{color:var(--lime);text-underline-offset:4px}.home{min-height:44px;display:inline-flex;align-items:center}button{min-height:44px;padding:8px 13px;background:transparent;border:1px solid var(--line);border-radius:8px}button[aria-pressed=true]{border-color:var(--lime);background:var(--lime);color:var(--base)}:focus-visible{outline:3px solid var(--coral);outline-offset:4px}h1,h2,p{margin:0}.eyebrow,.readout{font:700 .78rem/1.5 ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--lime)}.intro{padding-block:24px 17px}h1{font-size:clamp(2.05rem,6vw,4rem);line-height:1.12;letter-spacing:-.03em;margin:4px 0 8px}.intro p:last-child,.sub,footer{color:var(--muted)}.board{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(12px,3vw,28px)}.board-label{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}.board svg{width:100%;height:auto;display:block}.rail{stroke:#63786d;stroke-width:1}.pin{fill:var(--lime)}.stop{fill:var(--coral)}#string{stroke:#f5e3b1;stroke-width:4;fill:none}#quiet{stroke:#9b9f86;stroke-width:2;stroke-dasharray:4 6}.actions{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.primary{background:var(--lime);color:var(--base);border:0;font-weight:800}.primary[aria-disabled=true]{background:#b8c0a6;color:#25312d;cursor:default}.step{padding-top:14px}.step h2{font-size:1.1rem;margin-bottom:8px}.choices{display:flex;flex-wrap:wrap;gap:8px}.status{margin-top:12px;min-height:1.55em;color:var(--coral)}.results,.transfer{margin-top:15px;border-top:1px solid var(--line);padding-top:16px}.measure{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}.scope{border:1px solid var(--line);background:#141f1d;border-radius:9px;padding:10px}.scope b{font-size:clamp(1.14rem,4vw,1.8rem);display:block}.scope svg{aspect-ratio:6/1}.scope path{stroke:var(--lime);fill:none;stroke-width:1.6}.scope:nth-child(2) path{stroke:var(--coral)}.formula{margin-top:12px}.transfer .choices{margin-top:8px}.transfer p:last-child{margin-top:8px;color:var(--lime)}footer{padding:15px 0 24px;font-size:.88rem}[hidden]{display:none!important}
+@media(max-width:450px){.shell{width:calc(100% - 24px)}.toolbar button{padding-inline:8px}.actions{gap:8px}.scope{padding:7px}}
+</style></head>
+<body><div class="shell"><header><a class="home" id="home" href="../">← เมนู</a><div class="toolbar"><button id="lang" type="button" lang="en">EN</button><button id="sound" type="button" aria-pressed="false">เสียง</button><button id="reset" type="button">เริ่มใหม่</button></div></header>
+<main><div class="intro"><p class="eyebrow" id="tag">ทดลองเรื่องเสียง</p><h1 id="title">ถ้าสายสั้นลงครึ่งหนึ่ง?</h1><p id="intro">ลองดีดสาย 64 ซม. ก่อน แล้วทายเสียงของสาย 32 ซม. โดยคงแรงตึงเดิม</p></div>
+<section class="board" aria-labelledby="tag"><div class="board-label"><span class="readout" id="length">64 ซม.</span><span class="sub" id="hint">ความยาวช่วงที่สั่น</span></div>
+<svg aria-hidden="true" viewBox="0 0 640 126"><path class="rail" d="M27 39H614M27 88H614"/><path class="rail" d="M46 88v11m69-11v7m68-7v7m69-7v7m68-7v11m69-11v7m68-7v7m69-7v7m68-7v11"/><path id="quiet" d="M594 64H594"/><path id="string" d="M46 64H594"/><circle class="pin" cx="46" cy="64" r="7"/><circle class="pin" cx="594" cy="64" r="7"/><rect id="stop" class="stop" x="316" y="47" width="8" height="34" rx="3" hidden/></svg>
+<div class="actions"><button type="button" class="primary" id="pluck">ดีดสาย 64 ซม.</button><span class="sub" id="audioHint">เปิดเสียงได้ หรือดูคลื่นในหน้าเฉลย</span></div>
+<section class="step" id="predict" hidden><h2 id="question">ถ้ากดสายให้เหลือ 32 ซม. เสียงจะเป็นอย่างไร?</h2><div class="choices" role="group" aria-labelledby="question"><button type="button" id="low">ต่ำลง</button><button type="button" id="same">เท่าเดิม</button><button type="button" id="high">สูงขึ้น</button></div></section>
+<p class="status" id="status" role="status"></p>
+<section class="results" id="results" hidden><h2 id="answer">ความถี่เพิ่มเป็นสองเท่า</h2><p class="sub" id="window">คลื่นความถี่มูลฐานในช่วงเวลาเท่ากัน 50 มิลลิวินาที</p><div class="measure"><div class="scope"><span id="longLen">64 ซม.</span><b>220 Hz</b><svg aria-hidden="true" viewBox="0 0 240 40"><path id="waveLong"/></svg><span id="longCycles">11 รอบ</span></div><div class="scope"><span id="shortLen">32 ซม.</span><b>440 Hz</b><svg aria-hidden="true" viewBox="0 0 240 40"><path id="waveShort"/></svg><span id="shortCycles">22 รอบ</span></div></div><p class="formula" id="formula">เมื่อแรงตึงและมวลต่อความยาวคงที่ สายยิ่งสั้น ความถี่มูลฐานยิ่งสูง: f = v ÷ (2L)</p><button type="button" id="compare">ดีด 64 ซม. อีกครั้ง</button></section>
+<section class="transfer" id="transfer" hidden><h2 id="transferQ">แล้ว 48 ซม. ล่ะ? เสียงอยู่ตรงไหน?</h2><div class="choices" role="group" aria-labelledby="transferQ"><button type="button" id="below">ต่ำกว่า 220 Hz</button><button type="button" id="between">ระหว่าง 220 กับ 440 Hz</button><button type="button" id="above">สูงกว่า 440 Hz</button></div><p id="transferMsg" role="status"></p></section></section></main>
+<footer><span id="model">แบบจำลองสายอุดมคติยึดสองปลาย ตั้ง 220 Hz เป็นค่าตั้งต้น เสียงสังเคราะห์และภาพสายไม่ใช่การวัดจากเครื่องดนตรีจริง</span> · <a id="source" href="https://openstax.org/books/university-physics-volume-1/pages/16-6-standing-waves-and-resonance">ที่มา: OpenStax §16.6</a></footer></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const copy={
+tag:['ทดลองเรื่องเสียง','Listening experiment'],home:['← เมนู','← Menu'], title:['ถ้าสายสั้นลงครึ่งหนึ่ง?','What if you halve a string?'],
+intro:['ลองดีดสาย 64 ซม. ก่อน แล้วทายเสียงของสาย 32 ซม. โดยคงแรงตึงเดิม','Try the 64 cm string, then predict the 32 cm pitch. The tension stays the same.'],
+hint:['ความยาวช่วงที่สั่น','Vibrating length'], audioHint:['เปิดเสียงได้ หรือดูคลื่นในหน้าเฉลย','Turn sound on, or watch the waves in the reveal.'],
+reset:['เริ่มใหม่','Reset'], sound:['เสียง','Sound'],question:['ถ้ากดสายให้เหลือ 32 ซม. เสียงจะเป็นอย่างไร?','Press the string at 32 cm. What happens to the pitch?'],
+low:['ต่ำลง','Lower'],same:['เท่าเดิม','Same'],high:['สูงขึ้น','Higher'],
+answer:['ความถี่เพิ่มเป็นสองเท่า','Twice the frequency'],window:['คลื่นความถี่มูลฐานในช่วงเวลาเท่ากัน 50 มิลลิวินาที','Fundamental waves in the same 50 ms window'],
+longLen:['64 ซม.','64 cm'],shortLen:['32 ซม.','32 cm'],longCycles:['11 รอบ','11 cycles'],shortCycles:['22 รอบ','22 cycles'],
+formula:['เมื่อแรงตึงและมวลต่อความยาวคงที่ สายยิ่งสั้น ความถี่มูลฐานยิ่งสูง: f = v ÷ (2L)','At constant tension and mass per unit length, a shorter string has a higher fundamental frequency: f = v ÷ (2L).'],
+transferQ:['แล้ว 48 ซม. ล่ะ? เสียงอยู่ตรงไหน?','Where does 48 cm land?'],
+below:['ต่ำกว่า 220 Hz','Below 220 Hz'],between:['ระหว่าง 220 กับ 440 Hz','Between 220 and 440 Hz'],above:['สูงกว่า 440 Hz','Above 440 Hz'],
+model:['แบบจำลองสายอุดมคติยึดสองปลาย ตั้ง 220 Hz เป็นค่าตั้งต้น เสียงสังเคราะห์และภาพสายไม่ใช่การวัดจากเครื่องดนตรีจริง','Ideal string, fixed at both ends and set to 220 Hz at 64 cm. Synthesized sound and illustration, not instrument measurements.'],
+source:['ที่มา: OpenStax §16.6','Source: OpenStax §16.6']};
+let lang=0, stage=0, prediction='', transfer='', replayLength=32, audio=false, audioFail=false, ctx, soundSet=[], frame=0, revision=0;
+const freq=cm=>220*64/cm;
+const stopAudio=()=>{for(const node of soundSet){try{node.stop()}catch{}}soundSet=[]};
+async function tone(cm){
+ if(!audio)return; stopAudio(); const ticket=++revision; audioFail=false;
+ try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)throw Error();ctx||=new Audio();
+ if(ctx.state!=='running')await ctx.resume(); if(ticket!==revision||!audio)return;
+ const now=ctx.currentTime; for(let n=1;n<=3;n++){const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(freq(cm)*n,now);g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.09/n/n,now+.012);g.gain.exponentialRampToValueAtTime(.0001,now+.78/n);o.connect(g).connect(ctx.destination);o.onended=()=>{o.disconnect();g.disconnect();soundSet=soundSet.filter(x=>x!==o)};o.start(now);o.stop(now+.8);soundSet.push(o)}}
+ catch{if(ticket===revision){audioFail=true; render()}}
+}
+const lengthNow=()=>stage<2?64:stage===2?32:replayLength;
+const stringEnd=cm=>cm===32?320:594;
+function rest(end){$('string').setAttribute('d','M46 64H'+end)}
+function vibrate(cm){
+ cancelAnimationFrame(frame); const back=stringEnd(lengthNow()), end=stringEnd(cm);
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches){rest(back);return}
+ let start;function draw(now){start??=now;const d=now-start;if(d>400){rest(back);return}
+ const amp=16*Math.exp(-d/105)*Math.cos(d*.055);$('string').setAttribute('d',`M46 64Q${(end+46)/2} ${64+amp} ${end} 64`);frame=requestAnimationFrame(draw)}frame=requestAnimationFrame(draw)
+}
+function wave(hz){let d='';for(let x=0;x<=480;x++){d+=(x?'L':'M')+(x/2)+' '+(20+12*Math.sin(2*Math.PI*hz*.05*x/480)).toFixed(2)}return d}
+function t(th,en){return lang?en:th}
+function put(id,v){if($(id).textContent!==v)$(id).textContent=v}
+function render(){
+ document.documentElement.lang=t('th','en'); for(const [id,words] of Object.entries(copy))put(id,words[lang]);
+ put('lang',t('EN','ไทย'));$('lang').lang=t('en','th');$('sound').setAttribute('aria-pressed',String(audio));
+ put('audioHint',audioFail?t('เล่นเสียงไม่ได้ แต่เทียบคลื่นด้านล่างได้','Audio unavailable. You can still compare the waves.'):copy.audioHint[lang]);
+ const cm=lengthNow(); put('length',cm+t(' ซม.',' cm'));
+ put('pluck',t('ดีดสาย '+cm+' ซม.','Pluck '+cm+' cm'));
+ const other=cm===32?64:32;put('compare',t('สลับไปดีด '+other+' ซม.','Switch and pluck '+other+' cm'));
+ const blocked=stage===1;
+ $('pluck').setAttribute('aria-disabled',String(blocked));
+ $('predict').hidden=stage!==1;$('results').hidden=stage<3;$('transfer').hidden=stage<3;$('stop').hidden=cm!==32;
+ $('quiet').setAttribute('d',cm===32?'M320 64H594':'M594 64H594');
+ const status=stage===1?t('เลือกคำทายก่อนดีดสายสั้น','Make a prediction before plucking the shorter string.'):stage===2?t('ลองดีดสายสั้นเพื่อเปิดเฉลย','Pluck the shorter string to reveal the result.'):stage===3?(prediction==='high'?t('ทายถูก! เสียงสูงขึ้นหนึ่งอ็อกเทฟ','Correct! The pitch rises by an octave.'):t('เฉลย: เสียงสูงขึ้นหนึ่งอ็อกเทฟ','Reveal: The pitch rises by an octave.')):'';
+ put('status',status);
+ for(const id of ['below','between','above'])$(id).setAttribute('aria-pressed',String(transfer===id));
+ put('transferMsg',!transfer?'':(transfer==='between'?t('ถูก!','Correct!'):t('เฉลย:','Reveal:'))+' '+t('48 ซม. ≈ 293.3 Hz อยู่ระหว่าง 220 กับ 440 Hz','48 cm ≈ 293.3 Hz, between 220 and 440 Hz.'));
+}
+$('waveLong').setAttribute('d',wave(freq(64)));$('waveShort').setAttribute('d',wave(freq(32)));
+$('lang').onclick=()=>{lang=1-lang;render()};
+$('sound').onclick=()=>{audio=!audio;if(!audio){revision++;stopAudio();audioFail=false}render()};
+$('reset').onclick=()=>{revision++;stopAudio();cancelAnimationFrame(frame);rest(594);stage=0;replayLength=32;transfer=prediction='';audioFail=false;render();$('pluck').focus()};
+$('pluck').onclick=()=>{if(stage===1)return;const cm=lengthNow();if(stage===0)stage=1;else if(stage===2)stage=3;render();tone(cm);vibrate(cm);if(stage===1)$('low').focus()};
+for(const id of ['low','same','high'])$(id).onclick=()=>{if(stage!==1)return;prediction=id;stage=2;cancelAnimationFrame(frame);rest(320);render();$('pluck').focus()};
+$('compare').onclick=()=>{if(stage<3)return;replayLength=replayLength===32?64:32;cancelAnimationFrame(frame);rest(stringEnd(replayLength));render();tone(replayLength);vibrate(replayLength)};
+for(const id of ['below','between','above'])$(id).onclick=()=>{if(stage<3)return;transfer=id;render();tone(48)};
+render();
+</script></body></html>
